@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">ThirtyGame</string>
+    <string name="roll_button">Roll Dice</string>
+    <string name="result_view">Result</string>
+    <string name="spinner_prompt">Choose a category</string>
+    <string-array name="spinner_array">
+        <item> </item>
+        <item>Low</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+    </string-array>
+    <string name="reset_button">Next Round</string>
+    <string name="new_button">New Game</string>
+    <string name="result_button">Result</string>
+    <string name="text_view_low">Low:</string>
+    <string name="text_view_4">4:</string>
+    <string name="text_view_5">5:</string>
+    <string name="text_view_6">6:</string>
+    <string name="text_view_7">7:</string>
+    <string name="text_view_8">8:</string>
+    <string name="text_view_9">9:</string>
+    <string name="text_view_10">10:</string>
+    <string name="text_view_11">11:</string>
+    <string name="text_view_12">12:</string>
+    <string name="text_view_tot">"Total: "</string>
+    <string name="empty_result"></string>
+    <string name="back_to_game">Return to Game</string>
+    <string name="rules_button">Game Rules</string>
+</resources>
