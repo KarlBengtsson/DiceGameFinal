@@ -93,7 +93,10 @@ public class Model {
                     total += results[i];
                 }
             }
-            if (total % x == 0) {
+            if (total == 0) {
+                return -1;
+            }
+            else if (total % x == 0) {
                 return total;
             }
             return -1;
