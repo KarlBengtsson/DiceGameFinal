@@ -24,7 +24,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="130dp"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <ImageButton
@@ -52,7 +52,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="176dp"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <ImageButton
@@ -78,35 +78,73 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center|bottom"
-            android:orientation="horizontal">
+         <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center|bottom"
+        android:orientation="vertical">
 
-            <Button
-                android:id="@+id/NextRound"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/reset_button" />
+             <TextView
+                 android:id="@+id/textView"
+                 android:layout_width="319dp"
+                 android:layout_height="1dp"
+                 android:layout_weight="1"
+                 android:text="@string/Rule1" />
 
-            <Spinner
-                android:id="@+id/spinner1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/btn_dropdown"
-                android:entries="@array/spinner_array"
-                android:prompt="@string/spinner_prompt" />
+             <TextView
+                 android:id="@+id/textView13"
+                 android:layout_width="319dp"
+                 android:layout_height="1dp"
+                 android:layout_weight="1"
+                 android:text="@string/Rule4" />
 
-            <Button
-                android:id="@+id/rollDice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/roll_button" />
+             <TextView
+                 android:id="@+id/textView2"
+                 android:layout_width="319dp"
+                 android:layout_height="1dp"
+                 android:layout_weight="1"
+                 android:text="@string/Rule2" />
+
+             <TextView
+                 android:id="@+id/textView3"
+                 android:layout_width="321dp"
+                 android:layout_height="1dp"
+                 android:layout_weight="1"
+                 android:text="@string/Rule3" />
+
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="1dp"
+                 android:layout_weight="1"
+                 android:gravity="center|bottom"
+                 android:orientation="horizontal">
+
+                 <Button
+                     android:id="@+id/NextRound"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     android:text="@string/reset_button" />
+
+                 <Spinner
+                     android:id="@+id/spinner1"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@android:drawable/btn_dropdown"
+                     android:entries="@array/spinner_array"
+                     android:prompt="@string/spinner_prompt" />
+
+                 <Button
+                     android:id="@+id/rollDice"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/roll_button" />
+
+             </LinearLayout>
 
         </LinearLayout>
+
     </LinearLayout>
 
     <Button

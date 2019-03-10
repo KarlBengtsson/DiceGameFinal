@@ -18,9 +18,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.List;
+import android.content.SharedPreferences;
 
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public static final String EXTRA_MESSAGE = "result vector";
     private static final String KEY_DICES = "Dice";
     private static final String KEY_DICES2 = "Dice Value";
+    private static final String KEY_SPINNER = "Used Spinner";
     private static final String KEY_ROLLCOUNT = "Roll count";
     private static final String KEY_TURNCOUNT = "Turn count";
     private static final String KEY_RESULT = "Result";
@@ -58,11 +59,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main );
         setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        extras.putInt( KEY_ROLLCOUNT, 0 );
-
-        //Message displayed when the game starts
-        ToastDispLong("Press Roll Dice Button to begin the game, only selected die (red) give points at end of turn.");
-        ToastDispLong("You can roll the dice a maximum of 3 times per turn");
 
         //--------------------------------------Spinner-------------------
         spinner1 = (Spinner) findViewById(R.id.spinner1);
@@ -84,87 +80,42 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         image6 = (ImageButton) findViewById(R.id.imageButton6);
         Dices = new ImageButton[]{image1, image2, image3, image4, image5, image6};
         Dices2 = new Die[] {die1, die2, die3, die4, die5, die6};
-
-        for (int i = 0; i < Dices.length; i++) {
-            final int k = i;
-            Dices[k].setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Attempt to selct a die before the dice have been rolled prompts the player to roll the dice
-                    if (mrollCount == 0 && mturnCount > 0) {
-                        ToastDispShort("Press Roll Dice Button to begin next round");
-                    } else if(mrollCount == 0) {
-                        ToastDispShort("Press Roll Dice Button to begin the game");
-                    } else {
-                        diceModel.toggleColor(Dices[k], Dices2[k] );
-                    }
-                }
-            });
-        }
+        setDiceListener();
 
         //----------------------------------Buttons-----------------------
-        //Dice roll button, if a player tries to roll the dice more than 3 times in one round or if the game is over
-        //The player is instructed to either go on to next round or view results.
+        //Roll Dice button
         rollDice = (Button) findViewById(R.id.rollDice);
-        rollDice.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if (mrollCount == 3 && mturnCount == 9) {
-                    ToastDispLong("Last Round completed, choose category, press Next Round followed by result to view your result or New Game to" +
-                            "start a new game.");
-                }
-                else if (mrollCount == 3) {
-                    ToastDispLong("Round completed, choose category and press Next Round button to save your result and start next round.");
-                } else if(mturnCount == 10) {
-                    ToastDispLong("Game over, press Result to view your result or New Game to start New Game.");
+        setRollDiceListener();
 
-
-                }
-                else {
-                    mrollCount++;
-                    image1 = diceModel.diceRoll( image1, die1 );
-                    image2 = diceModel.diceRoll( image2, die2 );
-                    image3 = diceModel.diceRoll( image3, die3 );
-                    image4 = diceModel.diceRoll( image4, die4 );
-                    image5 = diceModel.diceRoll( image5, die5 );
-                    image6 = diceModel.diceRoll( image6, die6 );
-                }
-            }
-        });
-
-        //Button to count result and go on to next round, if the button is pressed wihtout the player selecting a category from the spinner
-        //Or if the category from the spinner has already been used this game, the player is instructed to make another selection form the spinner
+        //Next Round Button
         nextRound = (Button) findViewById( R.id.NextRound);
-        nextRound.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if (mturnCount == 10) {
-                    ToastDispShort("Game Over");
-                }
-                else {
-                    if (usedSpinner.contains( spinselect )) {
-                        ToastDispShort("Category already selected from spinner, please choose another");
-                    } else if(spinselect == 0) {
-                        ToastDispShort("Select Category from Spinner");
-                    } else {
-                        mturnCount++;
-                        countResult();
-                        for (int i = 0; i < Dices.length; i++) {
-                            final int k = i;
-                            final int j = i + 1;
-                            diceModel.reset( Dices[k], Dices2[k], j );
-                        }
-                        mrollCount = 0;
-                    }
-                }
-            }
-        });
+        setNextRoundListener();
 
+        //New Game Button
         newGame = (Button) findViewById( R.id.newGame );
+        setNewGameListener();
+
+        if (savedInstanceState != null) {
+            mrollCount = savedInstanceState.getInt(KEY_ROLLCOUNT);
+            mturnCount = savedInstanceState.getInt(KEY_TURNCOUNT);
+            SpinnerResult = savedInstanceState.getIntArray(KEY_RESULT);
+            isDieSelected = savedInstanceState.getBooleanArray(KEY_DICES);
+            usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
+            results = savedInstanceState.getIntArray(KEY_DICES2);
+            updateDice(isDieSelected, results);
+        }
+
+    }
+
+    /**
+     * Method to handle the New Game Button
+     *
+      */
+    private void setNewGameListener() {
         newGame.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                ToastDispLong("Press Roll Dice Button to begin the game, only selected die (red) give points at end of turn.");
+                ToastDispLong("New Game Started");
                 for (int i = 0; i < Dices.length; i++) {
                     final int k = i;
                     final int j = i + 1;
@@ -176,10 +127,105 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 for (int i = 0; i < SpinnerResult.length; i++) {
                     SpinnerResult[i] = 0;
                 }
-
             }
         });
+    }
 
+    /**
+     * Method to handle the Next Round Button
+     *
+     * Button to count result and go on to next round, if the button is pressed without the player selecting
+     * a category from the spinner, or if the category from the spinner has already been used this game,
+     * the player is instructed to make another selection form the spinner
+     */
+    private void setNextRoundListener() {
+        nextRound.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (mturnCount == 10) {
+                    ToastDispShort("Game Over");
+                }
+                else {
+                    if (mrollCount == 0) {
+                        ToastDispShort("Press Roll Dice Button to begin round");
+                    }
+                    else if (usedSpinner.contains( spinselect )) {
+                        ToastDispShort("Category already used, please choose another");
+                    } else if(spinselect == 0) {
+                        ToastDispShort("Select Category from drop down menu");
+                    } else {
+                        mturnCount++;
+                        countResult();
+                        for (int i = 0; i < Dices.length; i++) {
+                            final int k = i;
+                            final int j = i + 1;
+                            diceModel.reset( Dices[k], Dices2[k], j );
+                            results [k] = j;
+                            isDieSelected [k] = false;
+                        }
+                        mrollCount = 0;
+
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Method to handle the Roll Dice Button.
+     *
+     * If a player tries to roll the dice more than 3 times in one round or if the game is over
+     * The player is instructed to either go on to next round or view results.
+     *
+     */
+    private void setRollDiceListener() {
+        rollDice.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if (mrollCount == 3 && mturnCount == 9) {
+                    ToastDispLong("Last Round completed, choose category, press Next Round followed by result to view your result or New Game to" +
+                            "start a new game.");
+                }
+                else if (mrollCount == 3) {
+                    ToastDispLong("Round completed, choose category and press Next Round button to save your result and start next round.");
+                } else if(mturnCount == 10) {
+                    ToastDispLong("Game over, press Result to view your result or New Game to start New Game.");
+                }
+                else {
+                    mrollCount++;
+                    image1 = diceModel.diceRoll( image1, die1 ); results[0] = die1.getValue();
+                    image2 = diceModel.diceRoll( image2, die2 ); results[1] = die2.getValue();
+                    image3 = diceModel.diceRoll( image3, die3 ); results[2] = die3.getValue();
+                    image4 = diceModel.diceRoll( image4, die4 ); results[3] = die4.getValue();
+                    image5 = diceModel.diceRoll( image5, die5 ); results[4] = die5.getValue();
+                    image6 = diceModel.diceRoll( image6, die6 ); results[5] = die6.getValue();
+
+                }
+            }
+        });
+    }
+
+    /**
+     * Method to handle the dice imagebuttons
+     */
+    private void setDiceListener() {
+        for (int i = 0; i < Dices.length; i++) {
+            final int k = i;
+            Dices[k].setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Attempt to selct a die before the dice have been rolled prompts the player to roll the dice
+                    if (mrollCount == 0 && mturnCount > 0) {
+                        ToastDispShort("Press Roll Dice Button to begin round");
+                    } else if(mrollCount == 0) {
+                        ToastDispShort("Press Roll Dice Button to begin the game");
+                    } else {
+                        diceModel.toggleColor(Dices[k], Dices2[k] );
+                        isDieSelected[k] = Dices2[k].isRed();
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -218,6 +264,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Intent intent = new Intent(this, Results.class);
         intent.putExtra( EXTRA_MESSAGE, SpinnerResult );
         startActivity(intent);
+    }
+
+    public void updateDice(boolean [] color, int [] values) {
+        for (int i = 0; i < 6; i++) {
+            Dices2[i].setValue(values[i]);
+            if(color[i]) {
+                diceModel.toggleColor(Dices[i], Dices2[i]);
+            } else {
+                diceModel.toggleColor(Dices[i], Dices2[i]);
+                diceModel.toggleColor(Dices[i], Dices2[i]);
+            }
+        }
     }
 
     /**
@@ -265,20 +323,30 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
         Log.d(TAG, "onSaveInstanceState() called");
         savedInstanceState.putInt(KEY_ROLLCOUNT, mrollCount);
         savedInstanceState.putInt(KEY_TURNCOUNT, mturnCount);
+        savedInstanceState.putIntArray(KEY_RESULT, SpinnerResult);
+        savedInstanceState.putIntArray(KEY_DICES2, results);
+        savedInstanceState.putBooleanArray(KEY_DICES, isDieSelected);
+        savedInstanceState.putIntegerArrayList(KEY_SPINNER, (ArrayList<Integer>) usedSpinner);
+        super.onSaveInstanceState(savedInstanceState);
+
 
     }
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
         Log.d(TAG, "RestoreInstanceState() called");
         // Restore state members from saved instance
         mrollCount = savedInstanceState.getInt(KEY_ROLLCOUNT);
         mturnCount = savedInstanceState.getInt(KEY_TURNCOUNT);
+        SpinnerResult = savedInstanceState.getIntArray(KEY_RESULT);
+        isDieSelected = savedInstanceState.getBooleanArray(KEY_DICES);
+        usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
+        results = savedInstanceState.getIntArray(KEY_DICES2);
+        super.onRestoreInstanceState(savedInstanceState);
+        updateDice(isDieSelected, results);
     }
 
     @Override
@@ -293,9 +361,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume() called");
+
         //Intent intent = getIntent();
         //Bundle extras = intent.getExtras();
         //mrollCount = extras.getInt( KEY_ROLLCOUNT );
+    }
+
+    @Override
+    protected void onRestart() {
+        //Called when returning to activity from result
+        //
+        super.onRestart();
+        Log.d(TAG, "onRestart() called");
     }
 
     @Override
@@ -318,5 +395,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onDestroy();
         Log.d(TAG, "onDestroy() called");
     }
+
+
 
 }
