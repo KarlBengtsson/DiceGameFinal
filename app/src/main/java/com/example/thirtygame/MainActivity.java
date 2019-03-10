@@ -6,7 +6,6 @@ package com.example.thirtygame;
 
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,8 +19,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
-import android.content.SharedPreferences;
-
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     private Model diceModel = new Model();
@@ -30,13 +27,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private Button newGame;
     private Spinner spinner1;
     private ImageButton image1, image2, image3, image4, image5, image6;
-    private Die die1, die2, die3, die4, die5, die6;
+    private Die die1 = new Die();
+    private Die die2 = new Die();
+    private Die die3 = new Die();
+    private Die die4 = new Die();
+    private Die die5 = new Die();
+    private Die die6 = new Die();
+
     private int mrollCount = 0;
     private int mturnCount = 0;
     private int spinselect = 0;
-    private Bundle extras = new Bundle();
 
-    private int[] results = new int[] {1,1,1,1,1,1};
+    private int[] results = new int[] {1,2,3,4,5,6};
     private int[] SpinnerResult = new int [] {0,0,0,0,0,0,0,0,0,0};
     private boolean[] isDieSelected = new boolean[] {false, false, false, false, false, false};
     private ImageButton[] Dices;
@@ -58,42 +60,22 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState );
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main );
-        setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        //--------------------------------------Spinner-------------------
-        spinner1 = (Spinner) findViewById(R.id.spinner1);
-        spinner1.setOnItemSelectedListener(this);
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinner_array, android.R.layout.simple_spinner_item);
-        // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
-        spinner1.setAdapter(adapter);
-
-        //------------------------------------Dice-------------------------
-        die1 = new Die(); die2 = new Die(); die3 = new Die(); die4 = new Die(); die5 = new Die(); die6 = new Die();
-        image1 = (ImageButton) findViewById(R.id.imageButton);
-        image2 = (ImageButton) findViewById(R.id.imageButton2);
-        image3 = (ImageButton) findViewById(R.id.imageButton3);
-        image4 = (ImageButton) findViewById(R.id.imageButton4);
-        image5 = (ImageButton) findViewById(R.id.imageButton5);
-        image6 = (ImageButton) findViewById(R.id.imageButton6);
-        Dices = new ImageButton[]{image1, image2, image3, image4, image5, image6};
-        Dices2 = new Die[] {die1, die2, die3, die4, die5, die6};
-        setDiceListener();
-
-        //----------------------------------Buttons-----------------------
         //Roll Dice button
-        rollDice = (Button) findViewById(R.id.rollDice);
         setRollDiceListener();
 
         //Next Round Button
-        nextRound = (Button) findViewById( R.id.NextRound);
         setNextRoundListener();
 
         //New Game Button
-        newGame = (Button) findViewById( R.id.newGame );
         setNewGameListener();
+
+        //Spinner to select Category for score
+        setSpinnerListener();
+
+        //Dice
+        setDiceListener();
 
         if (savedInstanceState != null) {
             mrollCount = savedInstanceState.getInt(KEY_ROLLCOUNT);
@@ -102,9 +84,22 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             isDieSelected = savedInstanceState.getBooleanArray(KEY_DICES);
             usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
             results = savedInstanceState.getIntArray(KEY_DICES2);
-            updateDice(isDieSelected, results);
+            //updateDice(isDieSelected, results);
         }
+    }
 
+    /**
+     * Method to Handle the spinner
+     */
+    private void setSpinnerListener() {
+        spinner1 = (Spinner) findViewById(R.id.spinner1);
+        spinner1.setOnItemSelectedListener(this);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinner_array, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner1.setAdapter(adapter);
     }
 
     /**
@@ -112,6 +107,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      *
       */
     private void setNewGameListener() {
+        //State not saved when new game button is pushed
+        newGame = (Button) findViewById( R.id.newGame );
         newGame.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -138,7 +135,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      * a category from the spinner, or if the category from the spinner has already been used this game,
      * the player is instructed to make another selection form the spinner
      */
+
     private void setNextRoundListener() {
+        nextRound = (Button) findViewById( R.id.NextRound);
         nextRound.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -179,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      *
      */
     private void setRollDiceListener() {
+        rollDice = (Button) findViewById(R.id.rollDice);
         rollDice.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -207,8 +207,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     /**
      * Method to handle the dice imagebuttons
+     *
+     * If a player tries to select a die before the dice have been rolled, they are instructed
+     * to press the roll dice button first
      */
     private void setDiceListener() {
+        image1 = (ImageButton) findViewById(R.id.imageButton);
+        image2 = (ImageButton) findViewById(R.id.imageButton2);
+        image3 = (ImageButton) findViewById(R.id.imageButton3);
+        image4 = (ImageButton) findViewById(R.id.imageButton4);
+        image5 = (ImageButton) findViewById(R.id.imageButton5);
+        image6 = (ImageButton) findViewById(R.id.imageButton6);
+
+        Dices = new ImageButton[]{image1, image2, image3, image4, image5, image6};
+        Dices2 = new Die[] {die1, die2, die3, die4, die5, die6};
+
         for (int i = 0; i < Dices.length; i++) {
             final int k = i;
             Dices[k].setOnClickListener(new View.OnClickListener() {
@@ -266,10 +279,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         startActivity(intent);
     }
 
+    /**
+     * Method to update Dice when activity is recreated
+     * @param color
+     * @param values
+     */
     public void updateDice(boolean [] color, int [] values) {
         for (int i = 0; i < 6; i++) {
             Dices2[i].setValue(values[i]);
-            if(color[i]) {
+            if (color[i]) {
                 diceModel.toggleColor(Dices[i], Dices2[i]);
             } else {
                 diceModel.toggleColor(Dices[i], Dices2[i]);
@@ -348,54 +366,5 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onRestoreInstanceState(savedInstanceState);
         updateDice(isDieSelected, results);
     }
-
-    @Override
-    //Called when returning to Main Activity from Result Activity
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart() called");
-    }
-
-    @Override
-    //Called when returning to Main Activity from Result Activity
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume() called");
-
-        //Intent intent = getIntent();
-        //Bundle extras = intent.getExtras();
-        //mrollCount = extras.getInt( KEY_ROLLCOUNT );
-    }
-
-    @Override
-    protected void onRestart() {
-        //Called when returning to activity from result
-        //
-        super.onRestart();
-        Log.d(TAG, "onRestart() called");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause() called");
-    }
-
-    @Override
-    //Called when viewing the result activity
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop() called");
-        // extras.putInt(KEY_ROLLCOUNT, mrollCount);
-        // getIntent().putExtras(extras);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy() called");
-    }
-
-
 
 }
