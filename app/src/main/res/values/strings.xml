@@ -36,5 +36,5 @@
     <string name="Rule1">- Press the Roll Dice Button to roll the dice and begin each round. You can roll the dice a maximum of 3 times per round.</string>
     <string name="Rule2">- To see your accumulated score during a game, press the Result Button. To start a new game and reset your score, press the New Game Button</string>
     <string name="Rule3">- To calculate the score of a round and go on to the next round, click the next round button. To see which categories have been used, click the Result button.</string>
-    <string name="Rule4">- To select a die and save the die until the next roll, click on the die image.</string>
+    <string name="Rule4">- To select a die and save the die until the next roll, click on the die image. If a die is red, it will not be rolled.</string>
 </resources>

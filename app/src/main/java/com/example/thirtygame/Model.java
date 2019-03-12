@@ -5,12 +5,16 @@
 package com.example.thirtygame;
 
 import android.widget.ImageButton;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 
 public class Model {
     public static final Random rand = new Random();
     private int value = 0;
+    private int calcHelperResult;
 
     public Model() {
 
@@ -74,11 +78,12 @@ public class Model {
      * @return result
      */
     public int calcResult(int[] results, boolean[] die, int x) {
+        calcHelperResult = 0;
         x = x + 2;
         int total = 0;
         if (x == 3) {
             for (int i = 0; i < 6; i++) {
-                if (die[i] == true && results[i]  < 4) {
+                if (results[i]  < 4) {
                     total += results[i];
                 }
             } if (total == 0) {
@@ -88,19 +93,61 @@ public class Model {
 
         }
         else {
-            for (int i = 0; i < 6; i++) {
-                if (die[i] == true) {
-                    total += results[i];
+            ArrayList <Integer> calcResult = new ArrayList<>();
+            for (int i=0; i < 6; i++) {
+                if (results[i] <= x) {
+                    calcResult.add(results[i]);
                 }
             }
-            if (total == 0) {
+            for (int i = 0; i < calcResult.size(); i++) {
+                if (calcResult.get(i) == x) {
+                    total += x;
+                    calcResult.remove(i);
+                }
+            }
+            Collections.sort(calcResult, Collections.reverseOrder());
+            int a = calcHelper(calcResult, x, 0);
+            total += a;
+            if(total != 0) {
+                return total;
+            } else {
                 return -1;
             }
-            else if (total % x == 0) {
-                return total;
-            }
-            return -1;
         }
     }
 
+    private int calcHelper(ArrayList<Integer> result, int x, int total) {
+
+        if (total == x) {
+            calcHelperResult += total;
+            total = 0;
+        }
+
+        for (int i = 0; i< result.size(); i++) {
+            if (total + result.get(i) <= x) {
+                total += result.get(i);
+                result.remove(i);
+                calcHelper(result, x, total);
+                i = 0;
+                total = 0;
+            }
+        }
+        return calcHelperResult;
+
+    }
+
 }
+
+/*
+for (int i = 0; i < 6; i++) {
+        if (die[i] == true) {
+        total += results[i];
+        }
+        }
+        if (total == 0) {
+        return -1;
+        }
+        else if (total % x == 0) {
+        return total;
+        }
+        return -1;*/

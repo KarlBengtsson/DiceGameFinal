@@ -6,6 +6,7 @@ package com.example.thirtygame;
 
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState );
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main );
-        //setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         //Roll Dice button
         setRollDiceListener();
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             isDieSelected = savedInstanceState.getBooleanArray(KEY_DICES);
             usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
             results = savedInstanceState.getIntArray(KEY_DICES2);
-            //updateDice(isDieSelected, results);
+            updateDice(isDieSelected, results);
         }
     }
 
@@ -113,17 +114,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onClick(View v) {
                 ToastDispLong("New Game Started");
+                mrollCount = 0;
+                mturnCount = 0;
                 for (int i = 0; i < Dices.length; i++) {
                     final int k = i;
                     final int j = i + 1;
                     diceModel.reset( Dices[k], Dices2[k], j );
-                    mrollCount = 0;
-                    mturnCount = 0;
                     usedSpinner.clear();
+                    isDieSelected[k] = false;
+                    results[k] = j;
                 }
                 for (int i = 0; i < SpinnerResult.length; i++) {
                     SpinnerResult[i] = 0;
                 }
+
             }
         });
     }
@@ -364,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
         results = savedInstanceState.getIntArray(KEY_DICES2);
         super.onRestoreInstanceState(savedInstanceState);
-        updateDice(isDieSelected, results);
+        //updateDice(isDieSelected, results);
     }
 
 }
