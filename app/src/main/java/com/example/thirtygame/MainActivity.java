@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState );
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main );
-        setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         //Roll Dice button
         setRollDiceListener();
@@ -353,7 +353,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         savedInstanceState.putBooleanArray(KEY_DICES, isDieSelected);
         savedInstanceState.putIntegerArrayList(KEY_SPINNER, (ArrayList<Integer>) usedSpinner);
         super.onSaveInstanceState(savedInstanceState);
-
 
     }
 
