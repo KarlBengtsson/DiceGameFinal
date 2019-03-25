@@ -14,7 +14,7 @@ import java.util.Random;
 public class Model {
     public static final Random rand = new Random();
     private int value = 0;
-    private int calcHelperResult;
+    private int Result;
 
     public Model() {
 
@@ -78,9 +78,12 @@ public class Model {
      * @return result
      */
     public int calcResult(int[] results, boolean[] die, int x) {
-        calcHelperResult = 0;
-        x = x + 2;
+        Result = 0;
+        //Sätt x = värdet från spinner
+        x += 2;
         int total = 0;
+
+        //If player chooses 3 from spinner, add die value <= 3 to result
         if (x == 3) {
             for (int i = 0; i < 6; i++) {
                 if (results[i]  < 4) {
@@ -90,23 +93,25 @@ public class Model {
                 return -1;
             }
             return total;
-
         }
         else {
             ArrayList <Integer> calcResult = new ArrayList<>();
+            //If die value = selection from spinner, add die value to result
             for (int i=0; i < 6; i++) {
-                if (results[i] <= x) {
+                if (results[i] == x) {
+                    total += results[i];
+                }
+                //If die value is less than or equal to selection from spinner,
+                // add die value to ArrayList.
+               else if (results[i] < x) {
                     calcResult.add(results[i]);
                 }
             }
-            for (int i = 0; i < calcResult.size(); i++) {
-                if (calcResult.get(i) == x) {
-                    total += x;
-                    calcResult.remove(i);
-                }
-            }
+            //sort remaining dice in order largest to smallest
             Collections.sort(calcResult, Collections.reverseOrder());
-            int a = calcHelper(calcResult, x, 0);
+            //Calculate score recursively
+            int a = recursiveCalculator(calcResult, x, 0);
+            // add result to total and return total result
             total += a;
             if(total != 0) {
                 return total;
@@ -116,38 +121,38 @@ public class Model {
         }
     }
 
-    private int calcHelper(ArrayList<Integer> result, int x, int total) {
-
-        if (total == x) {
-            calcHelperResult += total;
+    /**
+     * Recursive method for calculating the score of remaining dice.
+     * @param resultlist
+     * @param x
+     * @param total
+     * @return
+     */
+    private int recursiveCalculator(ArrayList<Integer> resultlist, int x, int total) {
+        for (int i = 0; i< resultlist.size() - 1; i++) {
             total = 0;
-        }
-
-        for (int i = 0; i< result.size(); i++) {
-            if (total + result.get(i) <= x) {
-                total += result.get(i);
-                result.remove(i);
-                calcHelper(result, x, total);
-                i = 0;
-                total = 0;
+            //takes 1st number in list and tries to add remaining numbers to see if any
+            // sum is equal to x (category selected from spinner)
+            total += resultlist.get(i);
+            for ( int j = i + 1; j < resultlist.size(); j++) {
+                total += resultlist.get(j);
+                //if a sum is found , this is added to the result and the sumbers used to
+                // create sum are removed from the list.
+                if (total == x) {
+                    resultlist.remove(j);
+                    resultlist.remove(i);
+                    Result += total;
+                    total = 0;
+                    //recursive method is called again with the remaining numbers.
+                    recursiveCalculator(resultlist, x, total);
+                    i = 0;
+                    j = 0;
+                }
+                else if ( total > x) {
+                    total -= resultlist.get(j);
+                }
             }
         }
-        return calcHelperResult;
-
+        return Result;
     }
-
 }
-
-/*
-for (int i = 0; i < 6; i++) {
-        if (die[i] == true) {
-        total += results[i];
-        }
-        }
-        if (total == 0) {
-        return -1;
-        }
-        else if (total % x == 0) {
-        return total;
-        }
-        return -1;*/
