@@ -7,6 +7,7 @@ package com.example.thirtygame;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private Button rollDice;
     private Button nextRound;
     private Button newGame;
+    private Button finishRound;
+    private Button countScore;
     private Spinner spinner1;
+    private TextView Instructions2;
     private ImageButton image1, image2, image3, image4, image5, image6;
     private Die die1 = new Die();
     private Die die2 = new Die();
@@ -38,10 +43,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int mrollCount = 0;
     private int mturnCount = 0;
     private int spinselect = 0;
+    private int result = 0;
+    private boolean rolling = true;
 
     private int[] results = new int[] {1,2,3,4,5,6};
     private int[] SpinnerResult = new int [] {0,0,0,0,0,0,0,0,0,0};
     private boolean[] isDieSelected = new boolean[] {false, false, false, false, false, false};
+    private boolean[] isDieUsed = new boolean[] {false, false, false, false, false, false};
     private ImageButton[] Dices;
     private Die[] Dices2;
     private List<Integer> usedSpinner = new ArrayList<>();
@@ -49,11 +57,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public static final String EXTRA_MESSAGE = "result vector";
     private static final String KEY_DICES = "Dice";
     private static final String KEY_DICES2 = "Dice Value";
+    private static final String KEY_DICES3 = "Dice Used";
     private static final String KEY_SPINNER = "Used Spinner";
     private static final String KEY_ROLLCOUNT = "Roll count";
     private static final String KEY_TURNCOUNT = "Turn count";
     private static final String KEY_RESULT = "Result";
+    private static final String KEY_ROLLING = "Rolling";
+    private static final String KEY_SPINSELECT = "SpinSelect";
+    private static final String KEY_RESULTVALUE = "ResultValue";
     private static final String TAG = "Thirty";
+
 
     /** Called when the activity is first created. */
     @Override
@@ -61,32 +74,55 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState );
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main );
-        setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
+        //setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         //Roll Dice button
         setRollDiceListener();
-
-        //Next Round Button
+        //Default layout
+        setDefaultLayout();
         setNextRoundListener();
-
         //New Game Button
         setNewGameListener();
-
         //Spinner to select Category for score
         setSpinnerListener();
-
         //Dice
         setDiceListener();
+        //Finish Round Button
+        setFinishListener();
 
         if (savedInstanceState != null) {
             mrollCount = savedInstanceState.getInt(KEY_ROLLCOUNT);
             mturnCount = savedInstanceState.getInt(KEY_TURNCOUNT);
+            spinselect = savedInstanceState.getInt(KEY_SPINSELECT);
+            result = savedInstanceState.getInt(KEY_RESULTVALUE);
             SpinnerResult = savedInstanceState.getIntArray(KEY_RESULT);
             isDieSelected = savedInstanceState.getBooleanArray(KEY_DICES);
+            isDieUsed = savedInstanceState.getBooleanArray(KEY_DICES3);
             usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
             results = savedInstanceState.getIntArray(KEY_DICES2);
-            updateDice(isDieSelected, results);
+            rolling = savedInstanceState.getBoolean(KEY_ROLLING);
+            updateDice(isDieSelected, isDieUsed, results);
         }
+    }
+
+    private void setDefaultLayout() {
+        //Next Round Button
+        nextRound = (Button) findViewById( R.id.NextRound);
+        nextRound.setEnabled(false);
+        Instructions2 = (TextView) findViewById(R.id.InstructionsText2);
+        Instructions2.setText(R.string.InstructionRoll);
+    }
+
+    private void setFinishListener() {
+        countScore = (Button) findViewById(R.id.ScoreButton);
+        countScore.setEnabled(false);
+
+        finishRound = (Button) findViewById(R.id.FinishRoundButton);
+        finishRound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finishRound();
+            }
+        });
     }
 
     /**
@@ -96,7 +132,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         spinner1 = (Spinner) findViewById(R.id.spinner1);
         spinner1.setOnItemSelectedListener(this);
         // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinner_array, android.R.layout.simple_spinner_item);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinner_array,
+                android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
@@ -108,12 +145,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      *
       */
     private void setNewGameListener() {
-        //State not saved when new game button is pushed
         newGame = (Button) findViewById( R.id.newGame );
         newGame.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                ToastDispLong("New Game Started");
+                ToastDispMiddle("New Game Started");
                 mrollCount = 0;
                 mturnCount = 0;
                 for (int i = 0; i < Dices.length; i++) {
@@ -122,12 +158,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     diceModel.reset( Dices[k], Dices2[k], j );
                     usedSpinner.clear();
                     isDieSelected[k] = false;
+                    isDieUsed[k] = false;
                     results[k] = j;
                 }
                 for (int i = 0; i < SpinnerResult.length; i++) {
                     SpinnerResult[i] = 0;
                 }
-
+                rolling = true;
+                countScore.setEnabled(false);
+                finishRound.setEnabled(true);
+                nextRound.setEnabled(false);
+                spinner1.setEnabled(true);
+                rollDice.setEnabled(true);
             }
         });
     }
@@ -141,36 +183,37 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      */
 
     private void setNextRoundListener() {
-        nextRound = (Button) findViewById( R.id.NextRound);
         nextRound.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                if (mturnCount == 10) {
-                    ToastDispShort("Game Over");
-                }
-                else {
-                    if (mrollCount == 0) {
-                        ToastDispShort("Press Roll Dice Button to begin round");
-                    }
-                    else if (usedSpinner.contains( spinselect )) {
-                        ToastDispShort("Category already used, please choose another");
-                    } else if(spinselect == 0) {
-                        ToastDispShort("Select Category from drop down menu");
-                    } else {
-                        mturnCount++;
-                        countResult();
-                        for (int i = 0; i < Dices.length; i++) {
-                            final int k = i;
-                            final int j = i + 1;
-                            diceModel.reset( Dices[k], Dices2[k], j );
-                            results [k] = j;
-                            isDieSelected [k] = false;
-                        }
+                int counter = 0;
+                if (result == 0 && counter == 0) {
+                    ToastDispMiddle("Your accumulated score for this round is 0, please check to make sure you didn't miss " +
+                            "any combination of dice that can give you points. Press NEXT ROUND again to go on to next round.");
+                    counter++;
+                } else {
+                    mturnCount++;
+                    updateResult();
+                    Instructions2.setText(R.string.InstructionRoll);
+                    for (int i = 0; i < Dices.length; i++) {
+                        final int k = i;
+                        final int j = i + 1;
+                        diceModel.reset(Dices[k], Dices2[k], j);
+                        results[k] = j;
+                        isDieSelected[k] = false;
+                        isDieUsed[k] = false;
                         mrollCount = 0;
-
+                        //enable correct buttons
+                        countScore.setEnabled(false);
+                        finishRound.setEnabled(true);
+                        nextRound.setEnabled(false);
+                        spinner1.setEnabled(true);
+                        rollDice.setEnabled(true);
+                        rolling = true;
                     }
                 }
             }
+
         });
     }
 
@@ -187,15 +230,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onClick(View v) {
                 if (mrollCount == 3 && mturnCount == 9) {
-                    ToastDispLong("Last Round completed, choose category, press Next Round followed by result to view your result or New Game to" +
-                            "start a new game.");
-                }
-                else if (mrollCount == 3) {
-                    ToastDispLong("Round completed, choose category and press Next Round button to save your result and start next round.");
+                    ToastDispBottom("Final Round completed, select category and press FINISH ROUND to calculate score.");
+                } else if (mrollCount == 3) {
+                    ToastDispBottom("Round completed, select category and press FINISH ROUND to calculate score.");
                 } else if(mturnCount == 10) {
-                    ToastDispLong("Game over, press Result to view your result or New Game to start New Game.");
-                }
-                else {
+                    ToastDispBottom("Game over, press Result to view your result or New Game to " +
+                            "start New Game.");
+                } else {
                     mrollCount++;
                     image1 = diceModel.diceRoll( image1, die1 ); results[0] = die1.getValue();
                     image2 = diceModel.diceRoll( image2, die2 ); results[1] = die2.getValue();
@@ -203,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     image4 = diceModel.diceRoll( image4, die4 ); results[3] = die4.getValue();
                     image5 = diceModel.diceRoll( image5, die5 ); results[4] = die5.getValue();
                     image6 = diceModel.diceRoll( image6, die6 ); results[5] = die6.getValue();
-
                 }
             }
         });
@@ -233,10 +273,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 public void onClick(View v) {
                     // Attempt to selct a die before the dice have been rolled prompts the player to roll the dice
                     if (mrollCount == 0 && mturnCount > 0) {
-                        ToastDispShort("Press Roll Dice Button to begin round");
+                        ToastDispMiddle("Press Roll Dice Button to begin round");
                     } else if(mrollCount == 0) {
-                        ToastDispShort("Press Roll Dice Button to begin the game");
-                    } else {
+                        ToastDispMiddle("Press Roll Dice Button to begin the game");
+                    }
+                    else if (isDieUsed[k]){
+                       ToastDispMiddle("Die cannot be used to calculate score.");
+                    }
+                    else {
                         diceModel.toggleColor(Dices[k], Dices2[k] );
                         isDieSelected[k] = Dices2[k].isRed();
                     }
@@ -245,32 +289,81 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    public void finishRound(){
+            if (mrollCount == 0) {
+                ToastDispMiddle("Press Roll Dice Button to begin round");
+            } else if (mturnCount == 10) {
+                ToastDispMiddle("Game Over");
+            } else if (usedSpinner.contains( spinselect )) {
+                ToastDispMiddle("Category already used, please choose another");
+            } else if(spinselect == 0) {
+                ToastDispMiddle("Select Category from drop down menu");
+            } else {
+                ToastDispBottom("Round completed, follow instructions to calculate your score.");
+                if (spinselect == 1) {
+                    Instructions2.setText(R.string.InstructionLow);
+                    //if category low is selected. Only make dice with value 3 or less clickable.
+                    for (int i = 0; i < 6; i++) {
+                        if (spinselect == 1) {
+                            if (Dices2[i].getValue() > 3) {
+                                isDieUsed[i] = true;
+                            }
+                        }
+                    }
+                } else {
+                    Instructions2.setText(R.string.Instruction);
+                }
+                countScore.setEnabled(true);
+                finishRound.setEnabled(false);
+                nextRound.setEnabled(true);
+                spinner1.setEnabled(false);
+                rollDice.setEnabled(false);
+                rolling = false;
+
+                //Set all die to White.
+                for (int i = 0; i < Dices.length; i++) {
+                    final int k = i;
+                    diceModel.makeWhite(Dices[k], Dices2[k]);
+                    isDieSelected[k] = false;
+                }
+            }
+
+    }
+
     /**
      * Method to calculate the result of a round
      */
-    public void countResult () {
+    public void countResult (View view) {
         for (int i = 0; i < 6; i++) {
             results[i] = Dices2[i].getValue();
             isDieSelected[i] = Dices2[i].isRed();
         }
-        updateResult();
+        int resultresult = diceModel.calcResult(results, isDieSelected, spinselect );
+        if (resultresult == -1) {
+            ToastDispBottom("The sum of the die you selected do not equal the selected category." +
+                    " Please try again.");
+        } else {
+            result += resultresult;
+            for (int i = 0; i < 6; i++) {
+                if (isDieSelected[i]) {
+                    Dices2[i].toggleColor();
+                    diceModel.makeGrey(Dices[i], Dices2[i]);
+                    isDieUsed[i] = true;
+                }
+            }
+            ToastDispMiddle(String.valueOf(resultresult) + " points");
+        }
     }
 
     /**
      * Method to update the result displayed in the result view
      */
     public void updateResult() {
-        int selection = spinselect;
-        int res1 = diceModel.calcResult(results, isDieSelected, selection );
-        SpinnerResult [selection - 1] = res1;
-        if (res1 == -1) {
-            ToastDispShort("The last round gave you zero points");
-        }
-        else {
-            String string = Integer.toString( res1 );
-            ToastDispShort("The last round gave you " + string + " points");
-        }
-        usedSpinner.add(selection);
+        SpinnerResult [spinselect - 1] = result;
+        String string = Integer.toString( result );
+        ToastDispMiddle("The last round gave you " + string + " points");
+        usedSpinner.add(spinselect);
+        result = 0;
     }
 
     /**
@@ -288,37 +381,51 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      * @param color
      * @param values
      */
-    public void updateDice(boolean [] color, int [] values) {
+    public void updateDice(boolean [] color, boolean [] used, int [] values) {
         for (int i = 0; i < 6; i++) {
             Dices2[i].setValue(values[i]);
-            if (color[i]) {
+            if (used [i]) {
+                diceModel.makeGrey(Dices[i], Dices2[i]);
+            }
+            else if (color[i]) {
                 diceModel.toggleColor(Dices[i], Dices2[i]);
             } else {
                 diceModel.toggleColor(Dices[i], Dices2[i]);
                 diceModel.toggleColor(Dices[i], Dices2[i]);
             }
         }
+        //enable correct buttons depending on whether player is rolling dice or calculating score
+        if (rolling) {
+            countScore.setEnabled(false);
+            finishRound.setEnabled(true);
+            nextRound.setEnabled(false);
+            spinner1.setEnabled(true);
+            rollDice.setEnabled(true);
+        }else {
+            countScore.setEnabled(true);
+            finishRound.setEnabled(false);
+            nextRound.setEnabled(true);
+            spinner1.setEnabled(false);
+            rollDice.setEnabled(false);
+        }
     }
 
     /**
-     * Method used to display short toasts during the game
+     * Method used to display long toasts during the game, either top, middle or bottom
      * @param string
      */
-    public void ToastDispShort (String string) {
-        Toast toast = Toast.makeText( getApplicationContext(),
-                string, Toast.LENGTH_SHORT );
+
+    public void ToastDispMiddle (String string) {
+        Toast toast = Toast.makeText(getApplicationContext(),
+                string, Toast.LENGTH_LONG );
         toast.setGravity( Gravity.CENTER, 0, 0 );
         toast.show();
     }
 
-    /**
-     * Method used to display long toasts during the game
-     * @param string
-     */
-    public void ToastDispLong (String string) {
-        Toast toast = Toast.makeText( getApplicationContext(),
+    public void ToastDispBottom (String string) {
+        Toast toast = Toast.makeText(getApplicationContext(),
                 string, Toast.LENGTH_LONG );
-        toast.setGravity( Gravity.CENTER, 0, 0 );
+        toast.setGravity( Gravity.BOTTOM, 0, 0 );
         toast.show();
     }
 
@@ -343,6 +450,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
+    public void getInfo (View view) {
+        FragmentManager fm = getSupportFragmentManager();
+        InfoFragment infoFragment = InfoFragment.newInstance("InfoFragment");
+        infoFragment.show(fm, "fragment_info");
+    }
+
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         Log.d(TAG, "onSaveInstanceState() called");
@@ -351,9 +464,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         savedInstanceState.putIntArray(KEY_RESULT, SpinnerResult);
         savedInstanceState.putIntArray(KEY_DICES2, results);
         savedInstanceState.putBooleanArray(KEY_DICES, isDieSelected);
+        savedInstanceState.putBooleanArray(KEY_DICES3, isDieUsed);
+        savedInstanceState.putBoolean(KEY_ROLLING, rolling);
+        savedInstanceState.putInt(KEY_SPINSELECT, spinselect);
+        savedInstanceState.putInt(KEY_RESULTVALUE, result);
         savedInstanceState.putIntegerArrayList(KEY_SPINNER, (ArrayList<Integer>) usedSpinner);
         super.onSaveInstanceState(savedInstanceState);
-
     }
 
     @Override
@@ -364,8 +480,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mturnCount = savedInstanceState.getInt(KEY_TURNCOUNT);
         SpinnerResult = savedInstanceState.getIntArray(KEY_RESULT);
         isDieSelected = savedInstanceState.getBooleanArray(KEY_DICES);
+        isDieUsed = savedInstanceState.getBooleanArray(KEY_DICES3);
         usedSpinner = savedInstanceState.getIntegerArrayList(KEY_SPINNER);
         results = savedInstanceState.getIntArray(KEY_DICES2);
+        rolling = savedInstanceState.getBoolean(KEY_ROLLING);
+        spinselect = savedInstanceState.getInt(KEY_SPINSELECT);
+        result = savedInstanceState.getInt(KEY_RESULTVALUE);
         super.onRestoreInstanceState(savedInstanceState);
     }
 

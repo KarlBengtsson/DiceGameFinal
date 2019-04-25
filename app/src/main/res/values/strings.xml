@@ -33,8 +33,12 @@
     <string name="empty_result"></string>
     <string name="back_to_game">Return to Game</string>
     <string name="rules_button">Game Rules</string>
+    <string name="InstructionRoll">Press Roll dice Button to roll the dice, click dice to select and save them. Selected (Red) dice will not be rolled. You can roll the dice a maximum of 3 times per round. To finish round and calculate your score, select a category from the drop down menu then press the FINISH ROUND button. Try to save dice that you can pair together so that their sum equals the selected category.</string>
+    <string name="Instruction">To calculate your score for this round, pair together any number of dice so that the sum of their values equal the selected category. Then press the CALCULATE SCORE button. Only red die will count when this button is pressed. Repeat this to create as many groups of die as possible, grey die represent dice that have already been used this round. When you are finished, press the NEXT ROUND button to go on to the next round.</string>
+    <string name="InstructionLow">You have selected category Low, for this category you can select all dice with the value 3 or lower to collect points, followed by the CALCULATE SCORE Button. Press the NEXT ROUND button to go on to the next round when you are finished. </string>
     <string name="Rule1">- Press the Roll Dice Button to roll the dice and begin each round. You can roll the dice a maximum of 3 times per round.</string>
-    <string name="Rule2">- To see your accumulated score during a game, press the Result Button. To start a new game and reset your score, press the New Game Button</string>
-    <string name="Rule3">- To calculate the score of a round and go on to the next round, click the next round button. To see which categories have been used, click the Result button.</string>
+    <string name="Rule2">- To see your accumulated score and which categories have been used during a game, press the Result Button. To start a new game and reset your score, press the New Game Button</string>
+    <string name="Rule3">- When you have rolled the dice 3 times, or are satisfied with the dice you have after one or two rolls, and wish to calculate the round score, press the FINISH ROUND Button.</string>
     <string name="Rule4">- To select a die and save the die until the next roll, click on the die image. If a die is red, it will not be rolled.</string>
+    <string name="Rule5">- When calculating the result, only selected(red) die will count once you press the CALCULATE SCORE. Make sure you have selected the correct die before pressing the CALCULATE SCORE Button. This makes the game a little more challenging ;)</string>
 </resources>

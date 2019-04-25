@@ -9,10 +9,12 @@ import android.widget.ImageButton;
 public class Die {
     private int value;
     private boolean White;
+    private boolean used;
 
     public Die() {
         this.White = true;
         this.value = 1;
+        this.used = false;
     }
 
     /**
@@ -42,6 +44,19 @@ public class Die {
     public boolean isRed() {
         return (White != true);
     }
+
+    /**
+     * Check if die has been used
+     * @return true if die is used
+     */
+
+    /*public boolean isUsed() {
+        return (used==true);
+    }
+
+    public void dieUsed() {
+        used = true;
+    }*/
 
     /**
      * Retrieve the value of the die
@@ -120,10 +135,41 @@ public class Die {
     }
 
     /**
+     * Make die grey
+     * @param image
+     * @param value
+     * @return image of new die
+     */
+    public ImageButton colorToGrey(ImageButton image, int value) {
+        switch (value) {
+            case 1:
+                image.setImageResource( R.drawable.grey1 );
+                break;
+            case 2:
+                image.setImageResource( R.drawable.grey2 );
+                break;
+            case 3:
+                image.setImageResource( R.drawable.grey3 );
+                break;
+            case 4:
+                image.setImageResource( R.drawable.grey4 );
+                break;
+            case 5:
+                image.setImageResource( R.drawable.grey5 );
+                break;
+            case 6:
+                image.setImageResource( R.drawable.grey6 );
+                break;
+        }
+        return image;
+    }
+
+    /**
      * Reset die to white
      */
     public void reset() {
         White = true;
+        //used = false;
     }
 
 }
