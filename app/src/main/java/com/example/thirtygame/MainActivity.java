@@ -401,12 +401,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             nextRound.setEnabled(false);
             spinner1.setEnabled(true);
             rollDice.setEnabled(true);
+            Instructions2.setText(R.string.InstructionRoll);
         }else {
             countScore.setEnabled(true);
             finishRound.setEnabled(false);
             nextRound.setEnabled(true);
             spinner1.setEnabled(false);
             rollDice.setEnabled(false);
+            if (spinselect == 1) {
+                Instructions2.setText(R.string.InstructionLow);
+            } else {
+                Instructions2.setText(R.string.Instruction);
+            }
         }
     }
 
