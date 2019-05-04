@@ -116,12 +116,10 @@ public class Model {
             for (int i=0; i < redResults.size(); i++) {
                 total += redResults.get(i);
             } if (total != x) {
-                return -1;
-            }
-            else if(total == x) {
-                return total;
-            } else {
                 return 0;
+            }
+            else {
+                return total;
             }
         }
     }

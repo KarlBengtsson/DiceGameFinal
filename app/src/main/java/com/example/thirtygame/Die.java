@@ -18,7 +18,7 @@ public class Die {
     }
 
     /**
-     * Method to chenge a die from red to white/white to red
+     * Method to change a die from red to white/white to red
      */
     public void toggleColor() {
         if (!White) {

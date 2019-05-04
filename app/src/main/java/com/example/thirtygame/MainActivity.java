@@ -1,5 +1,5 @@
 /**
- * This is the main activity of the gam Thirty.
+ * This is the main activity of the game Thirty.
  */
 
 package com.example.thirtygame;
@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private int spinselect = 0;
     private int result = 0;
     private boolean rolling = true;
+    private int counter = 0;
 
     private int[] results = new int[] {1,2,3,4,5,6};
     private int[] SpinnerResult = new int [] {0,0,0,0,0,0,0,0,0,0};
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState );
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_main );
-        //setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         //Roll Dice button
         setRollDiceListener();
         //Default layout
@@ -104,6 +105,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    /**
+     * Method to Set Default layout when game is started
+     */
     private void setDefaultLayout() {
         //Next Round Button
         nextRound = (Button) findViewById( R.id.NextRound);
@@ -112,6 +116,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Instructions2.setText(R.string.InstructionRoll);
     }
 
+    /**
+     * Method that sets up the
+     */
     private void setFinishListener() {
         countScore = (Button) findViewById(R.id.ScoreButton);
         countScore.setEnabled(false);
@@ -186,7 +193,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         nextRound.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                int counter = 0;
                 if (result == 0 && counter == 0) {
                     ToastDispMiddle("Your accumulated score for this round is 0, please check to make sure you didn't miss " +
                             "any combination of dice that can give you points. Press NEXT ROUND again to go on to next round.");
@@ -203,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         isDieSelected[k] = false;
                         isDieUsed[k] = false;
                         mrollCount = 0;
+                        counter = 0;
                         //enable correct buttons
                         countScore.setEnabled(false);
                         finishRound.setEnabled(true);
@@ -230,11 +237,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onClick(View v) {
                 if (mrollCount == 3 && mturnCount == 9) {
-                    ToastDispBottom("Final Round completed, select category and press FINISH ROUND to calculate score.");
+                    ToastDispMiddle("Final Round completed, select category and press FINISH ROUND to calculate score.");
                 } else if (mrollCount == 3) {
-                    ToastDispBottom("Round completed, select category and press FINISH ROUND to calculate score.");
+                    ToastDispMiddle("Round completed, select category and press FINISH ROUND to calculate score.");
                 } else if(mturnCount == 10) {
-                    ToastDispBottom("Game over, press Result to view your result or New Game to " +
+                    ToastDispMiddle("Game over, press Result to view your result or New Game to " +
                             "start New Game.");
                 } else {
                     mrollCount++;
@@ -289,13 +296,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    /**
+     * Method to handle finish round button, pressed when the user is satisfied with the rolled dice or the
+     * die have been rolled a total of 3 times.
+     */
     public void finishRound(){
             if (mrollCount == 0) {
                 ToastDispMiddle("Press Roll Dice Button to begin round");
             } else if (mturnCount == 10) {
                 ToastDispMiddle("Game Over");
             } else if (usedSpinner.contains( spinselect )) {
-                ToastDispMiddle("Category already used, please choose another");
+                ToastDispMiddle("Category already used, please choose another from the drop down menu");
             } else if(spinselect == 0) {
                 ToastDispMiddle("Select Category from drop down menu");
             } else {
@@ -313,6 +324,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 } else {
                     Instructions2.setText(R.string.Instruction);
                 }
+                //enable correct buttons
                 countScore.setEnabled(true);
                 finishRound.setEnabled(false);
                 nextRound.setEnabled(true);
@@ -339,9 +351,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             isDieSelected[i] = Dices2[i].isRed();
         }
         int resultresult = diceModel.calcResult(results, isDieSelected, spinselect );
-        if (resultresult == -1) {
-            ToastDispBottom("The sum of the die you selected do not equal the selected category." +
-                    " Please try again.");
+        if (resultresult == 0) {
+            if (spinselect != 1) {
+                ToastDispMiddle("The sum of the die you selected do not equal the selected category." +
+                        " Please try again.");
+            } else {
+                ToastDispMiddle("You have not selected any die with the value 3 or lower, please try again.");
+            }
         } else {
             result += resultresult;
             for (int i = 0; i < 6; i++) {
@@ -384,10 +400,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void updateDice(boolean [] color, boolean [] used, int [] values) {
         for (int i = 0; i < 6; i++) {
             Dices2[i].setValue(values[i]);
-            if (used [i]) {
+            if (used [i] && spinselect != 1) {
                 diceModel.makeGrey(Dices[i], Dices2[i]);
-            }
-            else if (color[i]) {
+            } else if (color[i]) {
                 diceModel.toggleColor(Dices[i], Dices2[i]);
             } else {
                 diceModel.toggleColor(Dices[i], Dices2[i]);
